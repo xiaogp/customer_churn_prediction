@@ -5,7 +5,7 @@ import pickle
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
+from sklearn.datasets import load_svmlight_file
 from sklearn.metrics import *
 import tensorflow as tf
 from tensorflow.python.saved_model import tag_constants
@@ -84,41 +84,21 @@ class FM(object):
             self.summary_op = tf.summary.merge_all()
             
             
-def preprocessing():
-    """对数据进行onehot和minmax处理，分割训练和测试样本，pickle序列化"""
-    df = pd.read_csv("./churn2.csv", sep=",")
-    train, test = train_test_split(df, test_size=0.2)
-    
-    onehot_transform = OneHotEncoder(categories="auto", handle_unknown="ignore")
-    category_cols = train.columns.difference(["label", "USR_NUM_ID"])
-    train_feature= onehot_transform.fit_transform(train[category_cols]).toarray()
-    test_feature = onehot_transform.transform(test[category_cols]).toarray()
-    
-    print("{0:-^60}".format("data overview"))
-    print("训练样本数", train_feature.shape[0])
-    print("训练样本数", test_feature.shape[0])
-    print("特征数", train_feature.shape[1])
-    
-    pickle.dump(onehot_transform, open("./encoder_churn.pkl", "wb"))
-    pickle.dump((train_feature, train["label"].values), open("./train_churn.pkl", "wb"))
-    pickle.dump((test_feature, test["label"].values), open("./test_churn.pkl", "wb"))
-
-
 def get_batch(epoches, batch_size):
-    """ 将数据转化为generator格式 """
-    x_train, y_train = pickle.load(open("./train_churn.pkl", "rb"))
-    data = list(zip(x_train, y_train))
+    x_train, y_train = load_svmlight_file("./churn_train.svm", zero_based=True)
     for epoch in range(epoches):
-        random.shuffle(data)
-        for batch in range(0, len(data), batch_size):
-            if batch + batch_size < len(data):
-                yield data[batch: (batch + batch_size)]
+        ind = np.arange(x_train.shape[0])
+        np.random.shuffle(ind)
+        x_shuf, y_shuf = x_train[ind], y_train[ind]
+        for batch in range(0, x_train.shape[0], batch_size):
+            if batch + batch_size < x_train.shape[0]:
+                yield x_shuf[batch: (batch + batch_size)], y_shuf[batch: (batch + batch_size)]
 
 
 def train_main():
     FLAGS = tf.app.flags.FLAGS
     # model参数
-    tf.app.flags.DEFINE_integer("feature_size", 149, "number of fields")
+    tf.app.flags.DEFINE_integer("feature_size", 186, "number of fields")
     tf.app.flags.DEFINE_integer("fm_v_size", 8, "number of implicit vector dimensions")
     tf.app.flags.DEFINE_string("loss_fuc", "Cross_entropy", "loss function")
     tf.app.flags.DEFINE_string("train_optimizer", "Adam", "optimizer method")
@@ -130,7 +110,7 @@ def train_main():
     # data参数
     tf.app.flags.DEFINE_integer("epoches", 100, "number of data repeat time")
     tf.app.flags.DEFINE_integer("batch_size", 2048, "number of train data each batch")
-    print(FLAGS)
+    
     tf.reset_default_graph()
     model = FM(FLAGS.feature_size, FLAGS.fm_v_size, FLAGS.loss_fuc, FLAGS.train_optimizer, 
                FLAGS.learning_rate, FLAGS.reg_type, FLAGS.reg_param_w, FLAGS.reg_param_v, 
@@ -142,26 +122,26 @@ def train_main():
         shutil.rmtree("./FM_churn.log", ignore_errors=True)
         writer = tf.summary.FileWriter("./FM_churn.log", sess.graph)
         batches = get_batch(FLAGS.epoches, FLAGS.batch_size)
-        x_test, y_test = pickle.load(open("./test_churn.pkl", "rb"))
+        x_test, y_test = load_svmlight_file("./churn_test.svm", zero_based=True)
         
-        for batch in batches:
-            x_batch, y_batch = zip(*batch)
-            feed_dict = {model.input_x: x_batch, model.input_y: np.reshape(y_batch, [-1, 1])}
-            _, step, loss_val, auc_val, merged  = sess.run([model.train_step, model.global_step, model.loss, model.auc_score, model.summary_op], feed_dict=feed_dict)
+        for x_batch, y_batch in batches:
+            feed_dict = {model.input_x: x_batch.toarray(), model.input_y: np.reshape(y_batch, [-1, 1])}
+            train_op = [model.train_step, model.global_step, model.loss, model.auc_score, model.summary_op]
+            _, step, loss_val, auc_val, merged  = sess.run(train_op, feed_dict=feed_dict)
             writer.add_summary(merged, step)
             
             if step % 100 == 0:
                 print("step:", step, "loss:", loss_val, "auc:", auc_val[0])
             
             if step % 1000 == 0:
-                feed_dict = {model.input_x: x_test, model.input_y: np.reshape(y_test, [-1, 1])}
-                _, loss_val, auc_val = sess.run([model.train_step, model.loss, model.auc_score], feed_dict=feed_dict)
+                feed_dict = {model.input_x: x_test.toarray(), model.input_y: np.reshape(y_test, [-1, 1])}
+                loss_val, auc_val = sess.run([model.loss, model.auc_score], feed_dict=feed_dict)
                 print("[evaluation]", "loss:", loss_val, "auc:", auc_val[0])
                 print(" ")
         
         # 测试集评价
-        feed_dict = {model.input_x: x_test, model.input_y: np.reshape(y_test, [-1, 1])}
-        _, logit_val = sess.run([model.train_step,model.logit], feed_dict=feed_dict)
+        feed_dict = {model.input_x: x_test.toarray(), model.input_y: np.reshape(y_test, [-1, 1])}
+        logit_val = sess.run([model.logit], feed_dict=feed_dict)[0]
         
         print("accuracy:", accuracy_score(y_test, [round(x) for x in logit_val]))
         print("precision:", precision_score(y_test, [round(x) for x in logit_val]))
@@ -170,8 +150,8 @@ def train_main():
         print("auc:", roc_auc_score(y_test, logit_val))
         
         # 模型保存
-        shutil.rmtree("FM_churn.pb", ignore_errors=True)
-        builder = tf.saved_model.builder.SavedModelBuilder("FM_churn.pb")
+        shutil.rmtree("./FM_churn.pb", ignore_errors=True)
+        builder = tf.saved_model.builder.SavedModelBuilder("./FM_churn.pb")
         inputs = {'input_x': tf.saved_model.utils.build_tensor_info(model.input_x)}
         outputs = {'output': tf.saved_model.utils.build_tensor_info(model.logit)}
         signature = tf.saved_model.signature_def_utils.build_signature_def(
@@ -184,9 +164,7 @@ def train_main():
         
         
 def predict_main():
-    test = pd.read_csv("./churn2.csv").dropna()
-    onehot_transform = pickle.load(open("./encoder_churn.pkl", "rb"))
-    test_feature = onehot_transform.transform(test[test.columns.difference(["label", "USR_NUM_ID"])]).toarray()
+    x_test, y_test = load_svmlight_file("./churn_test.svm", zero_based=True)
     
     tf.reset_default_graph()
     with tf.Session() as sess:
@@ -195,13 +173,12 @@ def predict_main():
         # 获得tensor
         input_x = graph.get_operation_by_name("input_x").outputs[0]
         logit = graph.get_tensor_by_name("predict/logit:0")
-        predictions = sess.run(logit, feed_dict={input_x: test_feature})
+        predictions = sess.run(logit, feed_dict={input_x: x_test.toarray()})
     
-    test["predictions"] = predictions
-    result = test[["USR_NUM_ID", "label", "predictions"]]
-    result.to_csv("./churn_FM_result.csv", index=False)
+    with open("./fm_svm_res.txt", "w") as f:
+        for i in predictions:
+            f.write(str(i) + "\n")
 
 if __name__ == "__main__":
-    preprocessing()
     train_main()
     predict_main()
