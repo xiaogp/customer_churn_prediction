@@ -1,5 +1,5 @@
 # customer_churn_prediction
-一个用户流失二分类预测，数据清洗使用sparksql，FM模型训练使用tensorflow，接口服务使用tensorflow_model_server，GBDT模型训练使用XGBOOST，接口服务使用falsk
+一个用户流失二分类预测，数据清洗使用sparksql，FM模型训练使用tensorflow，接口服务使用tensorflow_model_server，GBDT模型训练使用XGBOOST，接口服务使用flask
 
 特征类型
 
