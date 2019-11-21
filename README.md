@@ -8,7 +8,7 @@
 | shop_duration  | 购物时间跨度  | recent  | 6个月R值  |
 | monetary  | 6个月M值  | max_amount  | 6个月最大一次购物金额  |
 | items_count  | 总购买商品数  | valid_points_sum  | 有效积分数  |
-| CHANNEL_NUM_ID  | 注册取到  | member_day  | 会员年限  |
+| CHANNEL_NUM_ID  | 注册渠道  | member_day  | 会员年限  |
 | VIP_TYPE_NUM_ID  | 会员卡等级  | frequence  | 6个月F值  |
 | avg_amount  | 客单价  | item_count_turn  | 单次购买商品数  |
 | avg_piece_amount  | 单品购买价格  | monetary3  | 3个月M值  |
