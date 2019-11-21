@@ -1,6 +1,30 @@
 # customer_churn_prediction
-一个基于tensorflow实现FM的二分类问题案例，包括训练，预测，serving
+一个用户流失二分类预测，数据清洗使用sparksql，FM模型训练使用tensorflow，接口服务使用tensorflow_model_server，GBDT模型训练使用XGBOOST，接口服务使用falsk
 
+特征类型
+| 特征  | 备注  | 特征  | 备注  |
+| ------------ | ------------ | ------------ | ------------ |
+| shop_duration  | 购物时间跨度  | recent  | 6个月R值  |
+| monetary  | 6个月M值  | max_amount  | 6个月最大一次购物金额  |
+| items_count  | 总购买商品数  | valid_points_sum  | 有效积分数  |
+| CHANNEL_NUM_ID  | 注册取到  | member_day  | 会员年限  |
+| VIP_TYPE_NUM_ID  | 会员卡等级  | frequence  | 6个月F值  |
+| avg_amount  | 客单价  | item_count_turn  | 单次购买商品数  |
+| avg_piece_amount  | 单品购买价格  | monetary3  | 3个月M值  |
+| max_amount3  | 3个月最大一次购物金额  | items_count3  | 3个月购买总商品数  |
+| frequence3  | 3个月F值  | shops_count  | 跨门店购买数  |
+| promote_percent  | 促销购买比例  | wxapp_diff  | 微信小程序购买R值  |
+| store_diff  | 门店购买R值  | shop_channel  | 购物渠道  |
+| week_percent  | 周末购物比例  | infant_group  | 母婴客群  |
+| water_product_group  | 水产客群  | meat_group  | 肉禽客群  |
+| beauty_group  | 美妆客群  | health_group  | 保健客群  |
+| fruits_group  | 水果客群  | vegetables_group  | 蔬菜客群  |
+| pets_group  | 家有宠物  | snacks_group  | 零食客群  |
+| smoke_group  | 烟民  | milk_group  | 奶制品客群  |
+| instant_group  | 方便食品客群  | grain_group  | 粮油食品客群  |
+
+
+FM因子分解机
 数据格式转换 libsvm
 
 ```
@@ -59,8 +83,6 @@ step: 76900 loss: 0.49328235 auc: 0.8270949
 step: 77000 loss: 0.5090138 auc: 0.82709527
 [evaluation] loss 0.4988083 auc: 0.82709527 
 
-step: 77100 loss: 0.47830555 auc: 0.82709426
-step: 77200 loss: 0.50664914 auc: 0.8270964
 accuracy: 0.7592295588733791
 precision: 0.7635289710090631
 reall: 0.8423797379298215
@@ -82,6 +104,33 @@ curl -d '{"instances": [{"input_x": [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1
     "predictions": [0.472961
     ]
 ```
+
+
+GBDT梯度提升树
+模型训练
+```
+python churn_xgb.py
+```
+
+GBDT测试集模型结果
+```
+acc: 0.7656144859931294
+pri: 0.7654276063379557
+rec: 0.8530070349277994
+auc: 0.8327608699836433
+```
+
+启动接口服务
+```
+python churn_xgb_server.py
+```
+
+接口测试
+```
+![](/GBDT/img/server_test.png)
+```
+
+
 
 sparkML的模型结果
 ```
