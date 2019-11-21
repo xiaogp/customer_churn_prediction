@@ -2,6 +2,7 @@
 一个用户流失二分类预测，数据清洗使用sparksql，FM模型训练使用tensorflow，接口服务使用tensorflow_model_server，GBDT模型训练使用XGBOOST，接口服务使用falsk
 
 特征类型
+
 | 特征  | 备注  | 特征  | 备注  |
 | ------------ | ------------ | ------------ | ------------ |
 | shop_duration  | 购物时间跨度  | recent  | 6个月R值  |
@@ -126,9 +127,9 @@ python churn_xgb_server.py
 ```
 
 接口测试
-```
+
 ![](/GBDT/img/server_test.png)
-```
+
 
 
 
