@@ -25,7 +25,7 @@
 | instant_group  | 方便食品客群  | grain_group  | 粮油食品客群  |
 
 
-FM因子分解机
+# FM因子分解机
 数据格式转换 libsvm
 
 ```
@@ -107,7 +107,7 @@ curl -d '{"instances": [{"input_x": [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1
 ```
 
 
-GBDT梯度提升树
+# GBDT梯度提升树
 模型训练
 ```
 python churn_xgb.py
@@ -121,7 +121,7 @@ rec: 0.8530070349277994
 auc: 0.8327608699836433
 ```
 
-启动接口服务
+启动flask web server
 ```
 python churn_xgb_server.py
 ```
@@ -133,7 +133,7 @@ python churn_xgb_server.py
 
 
 
-sparkML的模型结果
+# sparkML的模型结果
 ```
 AreaUnderROC: 0.831
 accuracy: 0.765
