@@ -2,13 +2,13 @@
 零售用户流失二分类预测，主要对比参数型模型【LR，FM】和树模型【GBDT，RF】，并对模型部署方式做总结
 
 ## 模型的部署方式
-- LR使用LibSVM格式的数据集， 采用 **TFRecords => tf.data.Dataset => model => tf_model_server**的tensorflow编程模型
+- LR使用LibSVM格式的数据集， 采用 TFRecords + tf.data.Dataset + model + tf_model_server的tensorflow编程模型
 
-- FM分别使用了csv和LibSVM两种格式的数据，采用 **placeholder / Sparse_placeholder=> model => tf_model_server**的tensorflow编程模型
+- FM分别使用了csv和LibSVM两种格式的数据，采用 tf.placeholder / tf.Sparse_placeholder+ model + tf_model_server的tensorflow编程模型
 
-- GBDT使用csv格式数据，采用**sklearn的自定义Pipeline配合xgboost的sklearn接口整体封装**特征工程和模型为一个完整的pipeline的pkl序列化文件，再包上**Flask的API模型接口**
+- GBDT使用csv格式数据，采用sklearn的自定义Pipeline配合xgboost的sklearn接口整体封装特征工程和模型为一个完整的pipeline的pkl序列化文件，再包上Flask的API模型接口
 
-- RF采用SparkSQL的原始数据，采用Spark ML组件，配合**airflow+spark submit定时任务**部署
+- RF采用SparkSQL的原始数据，采用Spark ML组件，配合airflow+spark submit定时任务部署
 
 ## 模型对比
 | 指标/模型  | LR  | FM  | GBDT  | RF  |
@@ -16,7 +16,7 @@
 | 框架  | tensorflow  | tensorflow  | xgboost  | SparkML  |
 | accuracy  | 0.749  | 0.759  | **0.766**  | 0.765  |
 | precision  | 0.750  | 0.764  | 0.765  | **0.766**  |
-| reccall  | 0.845  | 0.842  | 0.853  | 0.850  |
+| reccall  | 0.845  | 0.842  | **0.853**  | 0.850  |
 | auc_score  | 0.816 |  0.826  | ** 0.833**  | 0.831  |
 | f1_score  | 0.795  | 0.801  | **0.807**  | 0.806  |
 
