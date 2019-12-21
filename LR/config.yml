@@ -1,0 +1,18 @@
+data:
+  train_svm_path: ./data/churn_train.svm
+  test_svm_path: ./data/churn_test.svm
+  train_tfrecord_path: ./data/train.tfrecords
+  test_tfrecord_path: ./data/test.tfrecords
+  field_num: 186
+  batch_size: 512
+  capacity: 100
+  test_data_count: 197653  # 保证每次get_next都一样
+
+
+model:
+  learning_rate: 0.2
+  train_steps: 2000
+  train_display_steps: 100
+  test_display_steps: 1000
+  
+  
