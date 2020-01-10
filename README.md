@@ -12,7 +12,7 @@
 
 ## 模型对比
 | 指标/模型  | LR  | FM  | GBDT  | GBDT  |RF|
-| ------------ | ------------ | ------------ | ------------ | ------------ ||
+| ------------ | ------------ | ------------ | ------------ | ------------ | ------------ |
 | 框架  | tensorflow  | tensorflow  | xgboost  |  xgboost4j-spark |SparkML|
 | accuracy  | 0.749  | 0.759  | **0.766**  | 0.763  |0.765|
 | precision  | 0.750  | 0.764  | 0.765  | **0.766**  |**0.766**|
@@ -186,6 +186,13 @@ python churn_xgb_server.py
 postman接口测试
 
 ![](/GBDT/img/server_test.png)
+
+## xgboost4j-spark
+accuracy: 0.763                                                                 
+precision: 0.766                                                                
+recall: 0.847
+fMeasure: 0.805
+AreaUnderROC: 0.832
 
 ## RF 随机森林
 ```
