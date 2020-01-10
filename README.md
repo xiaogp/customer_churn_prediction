@@ -187,14 +187,14 @@ postman接口测试
 
 ![](/GBDT/img/server_test.png)
 
-## xgboost4j-spark
-accuracy: 0.763                                                                 
-precision: 0.766                                                                
-recall: 0.847
-fMeasure: 0.805
-AreaUnderROC: 0.832
+## xgboost4j-spark   
+accuracy: 0.763                                                                  
+precision: 0.766                                                                 
+recall: 0.847      
+fMeasure: 0.805      
+AreaUnderROC: 0.832     
 
-## RF 随机森林
+## RF 随机森林  
 ```
 AreaUnderROC: 0.831
 accuracy: 0.765
