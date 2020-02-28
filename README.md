@@ -1,5 +1,5 @@
 # customer_churn_prediction
-零售电商客户流失模型，基于tensorflow，xgboost4j-spark实现线性模型LR，FM，GBDT，RF，进行模型效果对比，离线/在线部署方式总结。
+零售电商客户流失模型，基于tensorflow，xgboost4j-spark实现线性模型LR，FM，GBDT，RF，进行模型效果对比，离线/在线serving部署方式总结。
 
 ## 模型的部署方式
 - LR使用LibSVM格式的数据集， 采用 TFRecords + tf.data.Dataset + model + tf_model_server的tensorflow编程模型。
@@ -105,10 +105,37 @@ f1: 0.7949941686862588
 auc: 0.8156375812964103
 ```
 
+项目文件树结构
+```
+├── TFRecord_process.py
+├── __pycache__
+│   ├── model.cpython-37.pyc
+│   ├── preprocessing.cpython-37.pyc
+│   └── utils.cpython-37.pyc
+├── churn_lr.pb
+│   ├── 001
+│   │   ├── saved_model.pb
+│   │   └── variables
+│   │       ├── variables.data-00000-of-00001
+│   │       └── variables.index
+│   └── models
+├── config.yml
+├── data
+│   ├── churn_featindex.txt
+│   ├── churn_test.svm
+│   ├── churn_train.svm
+│   ├── test.tfrecords
+│   └── train.tfrecords
+├── main.py
+├── model.py
+└── utils.py
+```
+
 使用docker的tensorflow_model_server镜像部署模型，rest接口测试启动服务
 ```
 docker run --rm -d -p 8501:8501 -v "/****/customer_churn_prediction/LR/churn_lr.pb:/models/churn_lr/" -e 	MODEL_NAME=churn_lr tensorflow/serving
 ```
+
 接口测试
 ```
 curl -d '{"instances": [{"input_x": [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0,0,0,0,1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0,1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0,0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0,0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0,0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0,0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]}], "signature_name":"my_signature"}' -X POST http://localhost:8501/v1/models/churn_lr:predict
@@ -187,14 +214,23 @@ postman接口测试
 
 ![](/GBDT/img/server_test.png)
 
-## xgboost4j-spark   
+## xgboost4j-spark
+提交spark任务
+```
+spark-submit --master local[*] --class com.mycom.myproject.churn_xgb4j_spark myproject-1.0-SNAPSHOT.jar
+```
+```   
 accuracy: 0.763                                                                  
 precision: 0.766                                                                 
 recall: 0.847      
 fMeasure: 0.805      
 AreaUnderROC: 0.832     
+```
 
 ## RF 随机森林  
+```
+spark-submit --master local[*] --class com.mycom.myproject.randomforest_churn myproject-1.0-SNAPSHOT.jar
+```
 ```
 AreaUnderROC: 0.831
 accuracy: 0.765
@@ -202,5 +238,3 @@ precision: 0.766
 recall: 0.850
 fMeasure: 0.806
 ```
-
-
